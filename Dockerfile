@@ -10,6 +10,9 @@ WORKDIR /app
 # Copia todo el contenido del proyecto (incluyendo mvnw y pom.xml)
 COPY . .
 
+# Da permisos de ejecución al wrapper de Maven
+RUN chmod +x mvnw
+
 # Ejecuta el empaquetado del proyecto, omitiendo los tests
 RUN ./mvnw clean package -DskipTests
 
