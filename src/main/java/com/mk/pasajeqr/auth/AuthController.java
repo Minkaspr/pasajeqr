@@ -2,6 +2,7 @@ package com.mk.pasajeqr.auth;
 
 import com.mk.pasajeqr.auth.request.LoginRequest;
 import com.mk.pasajeqr.auth.request.RegisterRequest;
+import com.mk.pasajeqr.auth.response.AuthResponse;
 import com.mk.pasajeqr.common.response.ApiResponse;
 import com.mk.pasajeqr.user.User;
 import com.mk.pasajeqr.user.UserService;
@@ -27,16 +28,16 @@ public class AuthController {
         ApiResponse<?> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),
                 "Usuario registrado exitosamente",
-                Map.of("userId", newUser.getId()),
+                Map.of("userId", newUser),
                 null
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<?>> login(@Valid @RequestBody LoginRequest request) {
-        String result = authService.login(request.getEmail(), request.getPassword());
-        ApiResponse<?> response = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse result = authService.login(request.getEmail(), request.getPassword());
+        ApiResponse<AuthResponse> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
                 "Inicio de sesión exitoso",
                 result,

@@ -1,16 +1,14 @@
 package com.mk.pasajeqr.auth;
 
 import com.mk.pasajeqr.auth.request.RegisterRequest;
+import com.mk.pasajeqr.auth.response.AuthResponse;
+import com.mk.pasajeqr.auth.response.UserResponse;
 import com.mk.pasajeqr.passenger.Passenger;
 import com.mk.pasajeqr.passenger.PassengerRepository;
 import com.mk.pasajeqr.user.User;
 import com.mk.pasajeqr.user.UserRepository;
-import com.mk.pasajeqr.user.dto.RegisterDTO;
-import com.mk.pasajeqr.user.request.UserRegisterRequest;
 import com.mk.pasajeqr.utils.Role;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +52,7 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
-    public String login(String email, String password) {
+    public AuthResponse login(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
 
@@ -63,7 +61,17 @@ public class AuthServiceImpl implements AuthService{
         }
 
         // Aquí iría la lógica para generar un token si estás usando JWT u otro sistema
-        return "Login exitoso: usuario autenticado";
+        return AuthResponse.builder()
+                .token("abc")
+                .tokenType("Bearer")
+                .expiresIn(3600) // o donde configures la duración del token
+                .user(UserResponse.builder()
+                        .id(user.getId())
+                        .email(user.getEmail())
+                        .name(user.getFirstName() + " " + user.getLastName())
+                        .role(user.getRole().name())
+                        .build())
+                .build();
     }
 
     @Override
