@@ -3,6 +3,7 @@ package com.mk.pasajeqr.auth;
 import com.mk.pasajeqr.auth.request.RegisterRequest;
 import com.mk.pasajeqr.auth.response.AuthResponse;
 import com.mk.pasajeqr.auth.response.UserResponse;
+import com.mk.pasajeqr.common.exception.UnauthorizedException;
 import com.mk.pasajeqr.passenger.Passenger;
 import com.mk.pasajeqr.passenger.PassengerRepository;
 import com.mk.pasajeqr.user.User;
@@ -54,10 +55,10 @@ public class AuthServiceImpl implements AuthService{
     @Override
     public AuthResponse login(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
+                .orElseThrow(() -> new UnauthorizedException("Credenciales inválidas"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new IllegalArgumentException("Credenciales inválidas");
+            throw new UnauthorizedException("Credenciales inválidas");
         }
 
         // Aquí iría la lógica para generar un token si estás usando JWT u otro sistema
