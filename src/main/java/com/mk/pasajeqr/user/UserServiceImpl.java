@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mk.pasajeqr.admin.Admin;
 import com.mk.pasajeqr.admin.AdminRepository;
+import com.mk.pasajeqr.common.exception.RoleDataConstraintViolationException;
 import com.mk.pasajeqr.driver.Driver;
 import com.mk.pasajeqr.driver.DriverRepository;
 import com.mk.pasajeqr.passenger.Passenger;
@@ -157,7 +158,7 @@ public class UserServiceImpl implements UserService {
             };
 
             if (!violations.isEmpty()) {
-                throw new ConstraintViolationException("Errores en datos del rol", violations);
+                throw new RoleDataConstraintViolationException("Errores en datos del rol", (Set<ConstraintViolation<?>>)(Set<?>) violations);
             }
         }
     }

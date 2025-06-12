@@ -14,7 +14,7 @@ public class LoginRequest {
     @Valid
     private String email;
     @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     @Pattern(
             regexp = "^[A-Za-z\\d@#\\$%*_\\-]+$",
             message = "La contraseña solo puede contener letras, números y los símbolos: @ # $ % * _ -"
