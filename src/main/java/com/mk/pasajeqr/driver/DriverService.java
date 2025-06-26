@@ -1,21 +1,23 @@
 package com.mk.pasajeqr.driver;
 
-import com.mk.pasajeqr.driver.request.DriverRegisterRequest;
-import com.mk.pasajeqr.driver.request.DriverUpdateRequest;
-import com.mk.pasajeqr.driver.response.BulkDeleteResponseDTO;
-import com.mk.pasajeqr.driver.response.DriverDetailDTO;
-import com.mk.pasajeqr.driver.response.DriversResponseDTO;
-import com.mk.pasajeqr.user.dto.UserStatusResponse;
+import com.mk.pasajeqr.driver.request.DriverCreateRQ;
+import com.mk.pasajeqr.driver.request.DriverUpdateRQ;
+import com.mk.pasajeqr.driver.response.DriverDetailRS;
+import com.mk.pasajeqr.driver.response.DriversRS;
+import com.mk.pasajeqr.utils.BulkDeleteRS;
+import com.mk.pasajeqr.utils.ChangePasswordRQ;
+import com.mk.pasajeqr.utils.UserStatusRS;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface DriverService {
-    DriverDetailDTO createDriver (DriverRegisterRequest request);
-    DriverDetailDTO getById(Long id);
-    DriversResponseDTO listDrivers(Pageable pageable);
-    DriverDetailDTO  updateDriver(Long id, DriverUpdateRequest request);
-    UserStatusResponse setUserStatus(Long id, boolean active);
+    DriverDetailRS createDriver (DriverCreateRQ request);
+    DriverDetailRS getById(Long id);
+    DriversRS listDrivers(Pageable pageable);
+    DriverDetailRS updateDriver(Long id, DriverUpdateRQ request);
+    void changePassword(Long id, ChangePasswordRQ request);
+    UserStatusRS setUserStatus(Long id, boolean active);
     void deleteDriver(Long id);
-    BulkDeleteResponseDTO deleteDrivers(List<Long> ids);
+    BulkDeleteRS deleteDrivers(List<Long> ids);
 }

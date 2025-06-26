@@ -1,8 +1,8 @@
 package com.mk.pasajeqr.auth;
 
-import com.mk.pasajeqr.auth.request.RegisterRequest;
-import com.mk.pasajeqr.auth.response.AuthResponse;
-import com.mk.pasajeqr.auth.response.UserResponse;
+import com.mk.pasajeqr.auth.request.RegisterRQ;
+import com.mk.pasajeqr.auth.response.AuthRS;
+import com.mk.pasajeqr.auth.response.UserRS;
 import com.mk.pasajeqr.common.exception.UnauthorizedException;
 import com.mk.pasajeqr.passenger.Passenger;
 import com.mk.pasajeqr.passenger.PassengerRepository;
@@ -30,7 +30,7 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     @Transactional
-    public User  registerUser(RegisterRequest request) {
+    public User  registerUser(RegisterRQ request) {
         String encryptedPassword = passwordEncoder.encode(request.getPassword());
         User user = User.builder()
                 .firstName(request.getFirstName())
@@ -53,7 +53,7 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
-    public AuthResponse login(String email, String password) {
+    public AuthRS login(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UnauthorizedException("Credenciales inválidas"));
 
@@ -61,12 +61,11 @@ public class AuthServiceImpl implements AuthService{
             throw new UnauthorizedException("Credenciales inválidas");
         }
 
-        // Aquí iría la lógica para generar un token si estás usando JWT u otro sistema
-        return AuthResponse.builder()
+        return AuthRS.builder()
                 .token("abc")
                 .tokenType("Bearer")
-                .expiresIn(3600) // o donde configures la duración del token
-                .user(UserResponse.builder()
+                .expiresIn(3600) // Duración del token en segundos
+                .user(UserRS.builder()
                         .id(user.getId())
                         .email(user.getEmail())
                         .firstName(user.getFirstName())

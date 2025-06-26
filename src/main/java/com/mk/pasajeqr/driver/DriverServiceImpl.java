@@ -2,17 +2,14 @@ package com.mk.pasajeqr.driver;
 
 import com.mk.pasajeqr.common.exception.DuplicateResourceException;
 import com.mk.pasajeqr.common.exception.ResourceNotFoundException;
-import com.mk.pasajeqr.driver.request.DriverRegisterRequest;
-import com.mk.pasajeqr.driver.request.DriverUpdateRequest;
-import com.mk.pasajeqr.driver.response.BulkDeleteResponseDTO;
-import com.mk.pasajeqr.driver.response.DriverDetailDTO;
-import com.mk.pasajeqr.driver.response.DriverUserListDTO;
-import com.mk.pasajeqr.driver.response.DriversResponseDTO;
+import com.mk.pasajeqr.driver.request.DriverCreateRQ;
+import com.mk.pasajeqr.driver.request.DriverUpdateRQ;
+import com.mk.pasajeqr.driver.response.DriverDetailRS;
+import com.mk.pasajeqr.driver.response.DriverUserItemRS;
+import com.mk.pasajeqr.driver.response.DriversRS;
 import com.mk.pasajeqr.user.User;
 import com.mk.pasajeqr.user.UserRepository;
-import com.mk.pasajeqr.user.dto.UserStatusResponse;
-import com.mk.pasajeqr.utils.DriverStatus;
-import com.mk.pasajeqr.utils.Role;
+import com.mk.pasajeqr.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +31,7 @@ public class DriverServiceImpl implements DriverService{
 
     @Override
     @Transactional
-    public DriverDetailDTO createDriver(DriverRegisterRequest request) {
+    public DriverDetailRS createDriver(DriverCreateRQ request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Ya existe un usuario con ese email");
         }
@@ -67,24 +64,24 @@ public class DriverServiceImpl implements DriverService{
 
         Driver savedDriver = driverRepository.save(driver);
 
-        return new DriverDetailDTO(savedDriver);
+        return new DriverDetailRS(savedDriver);
     }
 
     @Override
-    public DriverDetailDTO getById(Long id) {
+    public DriverDetailRS getById(Long id) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Driver no encontrado con id: " + id));
-        return new DriverDetailDTO(driver);
+        return new DriverDetailRS(driver);
     }
 
     @Override
-    public DriversResponseDTO listDrivers(Pageable pageable) {
+    public DriversRS listDrivers(Pageable pageable) {
         Page<Driver> driversPage = driverRepository.findAll(pageable);
-        List<DriverUserListDTO> driverDTOs = driversPage.getContent().stream()
-                .map(DriverUserListDTO::new)
+        List<DriverUserItemRS> driverDTOs = driversPage.getContent().stream()
+                .map(DriverUserItemRS::new)
                 .toList();
 
-        return new DriversResponseDTO(
+        return new DriversRS(
                 driverDTOs,
                 driversPage.getNumber(),
                 driversPage.getTotalPages(),
@@ -94,7 +91,7 @@ public class DriverServiceImpl implements DriverService{
 
     @Override
     @Transactional
-    public DriverDetailDTO updateDriver(Long id, DriverUpdateRequest request) {
+    public DriverDetailRS updateDriver(Long id, DriverUpdateRQ request) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Driver no encontrado con id: " + id));
 
@@ -129,12 +126,28 @@ public class DriverServiceImpl implements DriverService{
 
         Driver updatedDriver = driverRepository.save(driver);
 
-        return new DriverDetailDTO(updatedDriver);
+        return new DriverDetailRS(updatedDriver);
     }
 
     @Override
     @Transactional
-    public UserStatusResponse setUserStatus(Long id, boolean active) {
+    public void changePassword(Long id, ChangePasswordRQ request) {
+        Driver driver = driverRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Conductor no encontrado con ID: " + id));
+
+        User user = driver.getUser();
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("La contraseña actual no es correcta");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public UserStatusRS setUserStatus(Long id, boolean active) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Driver no encontrado con ID: " + id));
 
@@ -147,7 +160,7 @@ public class DriverServiceImpl implements DriverService{
         user.setStatus(active);
         userRepository.save(user);
 
-        return new UserStatusResponse(user.getId(), active);
+        return new UserStatusRS(user.getId(), active);
     }
 
     @Override
@@ -160,7 +173,7 @@ public class DriverServiceImpl implements DriverService{
 
     @Override
     @Transactional
-    public BulkDeleteResponseDTO deleteDrivers(List<Long> ids) {
+    public BulkDeleteRS deleteDrivers(List<Long> ids) {
         /*for (Long id : ids) {
             Driver driver = driverRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Driver no encontrado con id: " + id));
@@ -180,6 +193,6 @@ public class DriverServiceImpl implements DriverService{
             driverRepository.delete(driver);
         }
 
-        return new BulkDeleteResponseDTO(foundIds, notFoundIds);
+        return new BulkDeleteRS(foundIds, notFoundIds);
     }
 }

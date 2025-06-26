@@ -2,9 +2,7 @@ package com.mk.pasajeqr.fare;
 
 import com.mk.pasajeqr.stop.Stop;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,12 +21,17 @@ public class Fare {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @Column(nullable = false, unique = true, length = 20)
+    @NotBlank(message = "El código de tarifa es obligatorio")
+    @Size(max = 20, message = "El código no puede tener más de 20 caracteres")
+    private String code;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "origin_stop_id", nullable = false)
     @NotNull(message = "El paradero de origen es obligatorio")
     private Stop originStop;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "destination_stop_id", nullable = false)
     @NotNull(message = "El paradero de destino es obligatorio")
     private Stop destinationStop;
@@ -39,3 +42,4 @@ public class Fare {
     @Column(nullable = false, precision = 7, scale = 2)
     private BigDecimal price;
 }
+

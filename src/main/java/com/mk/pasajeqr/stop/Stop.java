@@ -8,6 +8,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "stop")
 @Data
@@ -23,4 +26,12 @@ public class Stop {
     @Size(min = 2, max = 100, message = "El nombre del paradero debe tener entre 2 y 100 caracteres")
     @Column(nullable = false, unique = true, length = 100)
     private String name;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDate createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDate.now();
+    }
 }

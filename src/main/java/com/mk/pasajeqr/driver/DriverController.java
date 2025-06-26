@@ -1,14 +1,11 @@
 package com.mk.pasajeqr.driver;
 
 import com.mk.pasajeqr.common.response.ApiResponse;
-import com.mk.pasajeqr.driver.request.BulkDeleteRequest;
-import com.mk.pasajeqr.driver.request.ChangeStatusRequest;
-import com.mk.pasajeqr.driver.request.DriverRegisterRequest;
-import com.mk.pasajeqr.driver.request.DriverUpdateRequest;
-import com.mk.pasajeqr.driver.response.BulkDeleteResponseDTO;
-import com.mk.pasajeqr.driver.response.DriverDetailDTO;
-import com.mk.pasajeqr.driver.response.DriversResponseDTO;
-import com.mk.pasajeqr.user.dto.UserStatusResponse;
+import com.mk.pasajeqr.utils.*;
+import com.mk.pasajeqr.driver.request.DriverCreateRQ;
+import com.mk.pasajeqr.driver.request.DriverUpdateRQ;
+import com.mk.pasajeqr.driver.response.DriverDetailRS;
+import com.mk.pasajeqr.driver.response.DriversRS;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -31,9 +28,11 @@ public class DriverController {
 
     // Crear un driver
     @PostMapping
-    public ResponseEntity<ApiResponse<DriverDetailDTO>> createDriver(@Valid @RequestBody DriverRegisterRequest request) {
-        DriverDetailDTO dto = driverService.createDriver(request);
-        ApiResponse<DriverDetailDTO> response = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<DriverDetailRS>> createDriver(
+            @Valid @RequestBody DriverCreateRQ request
+    ) {
+        DriverDetailRS dto = driverService.createDriver(request);
+        ApiResponse<DriverDetailRS> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),
                 "Driver creado exitosamente",
                 dto,
@@ -44,12 +43,12 @@ public class DriverController {
 
     // Obtener driver por ID
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<DriverDetailDTO>> getDriverById(
+    public ResponseEntity<ApiResponse<DriverDetailRS>> getDriverById(
             @PathVariable @Min(value = 1, message = "El ID debe ser mayor o igual a 1") Long id
     ) {
-        DriverDetailDTO dto = driverService.getById(id);
+        DriverDetailRS dto = driverService.getById(id);
 
-        ApiResponse<DriverDetailDTO> response = new ApiResponse<>(
+        ApiResponse<DriverDetailRS> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
                 "Driver encontrado",
                 dto,
@@ -61,17 +60,17 @@ public class DriverController {
 
     // Listar drivers con paginación
     @GetMapping
-    public ResponseEntity<ApiResponse<DriversResponseDTO>> listDrivers(
+    public ResponseEntity<ApiResponse<DriversRS>> listDrivers(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("userId").descending());
-        DriversResponseDTO responseDTO = driverService.listDrivers(pageable);
+        DriversRS result = driverService.listDrivers(pageable);
 
-        ApiResponse<DriversResponseDTO> response = new ApiResponse<>(
+        ApiResponse<DriversRS> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
                 "Lista de drivers",
-                responseDTO,
+                result,
                 null
         );
 
@@ -80,27 +79,38 @@ public class DriverController {
 
     // Actualizar driver
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<DriverDetailDTO>> updateDriver(
+    public ResponseEntity<ApiResponse<DriverDetailRS>> updateDriver(
             @PathVariable @Min(value = 1, message = "El ID debe ser mayor o igual a 1") Long id,
-            @Valid @RequestBody DriverUpdateRequest request
+            @Valid @RequestBody DriverUpdateRQ request
     ) {
-        DriverDetailDTO dto = driverService.updateDriver(id, request);
-        ApiResponse<DriverDetailDTO> response = new ApiResponse<>(
+        DriverDetailRS updateDriver = driverService.updateDriver(id, request);
+        ApiResponse<DriverDetailRS> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
                 "Driver actualizado correctamente",
-                dto,
+                updateDriver,
                 null
         );
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/password")
+    public ResponseEntity<ApiResponse<?>> changePassword(
+            @PathVariable @Min(value = 1, message = "El ID debe ser mayor o igual a 1") Long id,
+            @Valid @RequestBody ChangePasswordRQ request
+    ) {
+        driverService.changePassword(id, request);
+        return ResponseEntity.ok(
+                new ApiResponse<>(HttpStatus.OK.value(), "Contraseña actualizada con éxito", null, null)
+        );
     }
 
     // Actualizar el status driver por ID
     @PatchMapping("/{id}/status")
     public ResponseEntity<ApiResponse<?>> changeDriverStatus(
             @PathVariable @Min(value = 1, message = "El ID debe ser mayor o igual a 1") Long id,
-            @Valid @RequestBody ChangeStatusRequest request
+            @Valid @RequestBody ChangeStatusRQ request
     ) {
-        UserStatusResponse response = driverService.setUserStatus(id, request.getActive());
+        UserStatusRS response = driverService.setUserStatus(id, request.getActive());
         String message = request.getActive() ? "Cuenta activada con éxito" : "Cuenta desactivada con éxito";
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), message, response, null));
     }
@@ -115,8 +125,10 @@ public class DriverController {
     }
 
     @DeleteMapping("/bulk-delete")
-    public ResponseEntity<ApiResponse<BulkDeleteResponseDTO>> deleteMultipleDrivers(@Valid @RequestBody BulkDeleteRequest request) {
-        BulkDeleteResponseDTO result = driverService.deleteDrivers(request.getDriverIds());
+    public ResponseEntity<ApiResponse<BulkDeleteRS>> deleteMultipleDrivers(
+            @Valid @RequestBody BulkDeleteRQ request
+    ) {
+        BulkDeleteRS result = driverService.deleteDrivers(request.getIds());
 
         String message = "Operación de eliminación masiva completada";
         return ResponseEntity.ok(
