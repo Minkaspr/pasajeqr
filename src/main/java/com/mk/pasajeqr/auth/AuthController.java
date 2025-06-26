@@ -1,12 +1,10 @@
 package com.mk.pasajeqr.auth;
 
-import com.mk.pasajeqr.auth.request.LoginRequest;
-import com.mk.pasajeqr.auth.request.RegisterRequest;
-import com.mk.pasajeqr.auth.response.AuthResponse;
+import com.mk.pasajeqr.auth.request.LoginRQ;
+import com.mk.pasajeqr.auth.request.RegisterRQ;
+import com.mk.pasajeqr.auth.response.AuthRS;
 import com.mk.pasajeqr.common.response.ApiResponse;
 import com.mk.pasajeqr.user.User;
-import com.mk.pasajeqr.user.UserService;
-import com.mk.pasajeqr.user.request.UserRegisterRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,7 +21,7 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<?>> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<?>> register(@Valid @RequestBody RegisterRQ request) {
         User newUser = authService.registerUser(request);
         ApiResponse<?> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),
@@ -35,9 +33,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse result = authService.login(request.getEmail(), request.getPassword());
-        ApiResponse<AuthResponse> response = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<AuthRS>> login(@Valid @RequestBody LoginRQ request) {
+        AuthRS result = authService.login(request.getEmail(), request.getPassword());
+        ApiResponse<AuthRS> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
                 "Inicio de sesión exitoso",
                 result,

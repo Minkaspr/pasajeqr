@@ -1,6 +1,6 @@
 package com.mk.pasajeqr.payment;
 
-import com.mk.pasajeqr.service.Service;
+import com.mk.pasajeqr.trip.Trip;
 import com.mk.pasajeqr.stop.Stop;
 import com.mk.pasajeqr.user.User;
 import jakarta.persistence.*;
@@ -29,7 +29,7 @@ public class Payment {
 
     @ManyToOne
     @JoinColumn(name = "service_id", nullable = false)
-    private Service service;
+    private Trip service;
 
     @ManyToOne
     @JoinColumn(name = "origin_stop_id", nullable = false)
