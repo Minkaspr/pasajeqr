@@ -1,7 +1,9 @@
 package com.mk.pasajeqr.passenger;
 
+import com.mk.pasajeqr.balance_transaction.response.BalanceTransactionDetailRS;
 import com.mk.pasajeqr.passenger.request.PassengerCreateRQ;
 import com.mk.pasajeqr.passenger.request.PassengerUpdateRQ;
+import com.mk.pasajeqr.passenger.request.RechargeRQ;
 import com.mk.pasajeqr.passenger.response.PassengerDetailRS;
 import com.mk.pasajeqr.passenger.response.PassengersRS;
 import com.mk.pasajeqr.utils.BulkDeleteRS;
@@ -20,4 +22,5 @@ public interface PassengerService {
     UserStatusRS setUserStatus(Long id, boolean active);
     void delete(Long id);
     BulkDeleteRS deleteBulk(List<Long> ids);
+    BalanceTransactionDetailRS recharge(Long passengerId, RechargeRQ request);
 }

@@ -5,14 +5,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mk.pasajeqr.admin.Admin;
 import com.mk.pasajeqr.admin.AdminRepository;
+import com.mk.pasajeqr.common.exception.BadRequestException;
+import com.mk.pasajeqr.common.exception.ResourceNotFoundException;
 import com.mk.pasajeqr.common.exception.RoleDataConstraintViolationException;
 import com.mk.pasajeqr.driver.Driver;
 import com.mk.pasajeqr.driver.DriverRepository;
 import com.mk.pasajeqr.passenger.Passenger;
 import com.mk.pasajeqr.passenger.PassengerRepository;
+import com.mk.pasajeqr.passenger.response.PassengerLookupRS;
 import com.mk.pasajeqr.user.dto.RegisterDTO;
 import com.mk.pasajeqr.user.request.UserRegisterRequest;
-import com.mk.pasajeqr.utils.Role;
+import com.mk.pasajeqr.utils.RoleType;
 import jakarta.validation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -113,8 +116,31 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con email: " + email));
     }
 
+    @Override
+    public PassengerLookupRS findPassengerByDni(String dni) {
+        User user = userRepository.findByDni(dni)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con DNI: " + dni));
+
+        if (user.getRole() != RoleType.PASSENGER) {
+            throw new BadRequestException("El usuario no es un pasajero");
+        }
+
+        Passenger passenger = passengerRepository.findById(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró información del pasajero"));
+
+        return new PassengerLookupRS(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getDni(),
+                user.getEmail(),
+                passenger.getBalance(),
+                user.getStatus()
+        );
+    }
+
     private void validarRoleData(UserRegisterRequest request) {
-        Role role = request.getUserData().getRole();
+        RoleType role = request.getUserData().getRole();
         JsonNode roleData = request.getRoleData();
 
         // Validar que si hay un rol, debe haber roleData no nulo y no vacío

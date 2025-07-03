@@ -8,7 +8,7 @@ import com.mk.pasajeqr.passenger.Passenger;
 import com.mk.pasajeqr.passenger.PassengerRepository;
 import com.mk.pasajeqr.user.User;
 import com.mk.pasajeqr.user.UserRepository;
-import com.mk.pasajeqr.utils.Role;
+import com.mk.pasajeqr.utils.RoleType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class AuthServiceImpl implements AuthService{
                 .dni(request.getDni())
                 .email(request.getEmail())
                 .password(encryptedPassword)
-                .role(Role.PASSENGER)
+                .role(RoleType.PASSENGER)
                 .status(true)
                 .build();
 

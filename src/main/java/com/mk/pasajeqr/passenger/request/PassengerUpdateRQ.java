@@ -31,7 +31,6 @@ public class PassengerUpdateRQ {
     @NotNull(message = "El estado del usuario es obligatorio")
     private Boolean userStatus;
 
-    @NotNull(message = "El saldo no puede ser nulo")
     @DecimalMin(value = "0.00", inclusive = true, message = "El saldo no puede ser negativo")
     private BigDecimal balance;
 }

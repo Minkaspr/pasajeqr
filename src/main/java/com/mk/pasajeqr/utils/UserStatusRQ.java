@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class ChangeStatusRQ {
+public class UserStatusRQ {
     @NotNull(message = "El estado activo/inactivo es obligatorio")
     private Boolean active;
 }

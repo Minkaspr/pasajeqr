@@ -87,7 +87,7 @@ public class AdminController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<ApiResponse<?>> changeStatus(
             @PathVariable @Min(value = 1, message = "El ID debe ser mayor o igual a 1") Long id,
-            @Valid @RequestBody ChangeStatusRQ request
+            @Valid @RequestBody UserStatusRQ request
     ) {
         UserStatusRS response = adminService.setUserStatus(id, request.getActive());
 

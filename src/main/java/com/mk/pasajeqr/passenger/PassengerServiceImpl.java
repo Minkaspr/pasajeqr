@@ -1,18 +1,19 @@
 package com.mk.pasajeqr.passenger;
 
+import com.mk.pasajeqr.balance_transaction.BalanceTransaction;
+import com.mk.pasajeqr.balance_transaction.BalanceTransactionRepository;
+import com.mk.pasajeqr.balance_transaction.response.BalanceTransactionDetailRS;
 import com.mk.pasajeqr.common.exception.DuplicateResourceException;
 import com.mk.pasajeqr.common.exception.ResourceNotFoundException;
 import com.mk.pasajeqr.passenger.request.PassengerCreateRQ;
 import com.mk.pasajeqr.passenger.request.PassengerUpdateRQ;
+import com.mk.pasajeqr.passenger.request.RechargeRQ;
 import com.mk.pasajeqr.passenger.response.PassengerDetailRS;
 import com.mk.pasajeqr.passenger.response.PassengerUserItemRS;
 import com.mk.pasajeqr.passenger.response.PassengersRS;
 import com.mk.pasajeqr.user.User;
 import com.mk.pasajeqr.user.UserRepository;
-import com.mk.pasajeqr.utils.BulkDeleteRS;
-import com.mk.pasajeqr.utils.ChangePasswordRQ;
-import com.mk.pasajeqr.utils.Role;
-import com.mk.pasajeqr.utils.UserStatusRS;
+import com.mk.pasajeqr.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -31,6 +34,8 @@ public class PassengerServiceImpl implements PassengerService{
     private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private BalanceTransactionRepository balanceTransactionRepository;
 
     @Override
     public PassengersRS getAllPaged(Pageable pageable) {
@@ -65,7 +70,7 @@ public class PassengerServiceImpl implements PassengerService{
                 .dni(request.getDni())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.PASSENGER)
+                .role(RoleType.PASSENGER)
                 .status(true)
                 .build();
 
@@ -77,6 +82,18 @@ public class PassengerServiceImpl implements PassengerService{
                 .build();
 
         Passenger savedPassenger = passengerRepository.save(passenger);
+
+        if (request.getBalance() != null && request.getBalance().compareTo(BigDecimal.ZERO) > 0) {
+            BalanceTransaction initialTransaction = BalanceTransaction.builder()
+                    .user(savedUser)
+                    .amount(request.getBalance())
+                    .type(TransactionType.RECHARGE)
+                    .transactionDate(LocalDateTime.now())
+                    .description("Recarga inicial al crear pasajero")
+                    .build();
+
+            balanceTransactionRepository.save(initialTransaction);
+        }
 
         return new PassengerDetailRS(savedPassenger);
     }
@@ -112,8 +129,9 @@ public class PassengerServiceImpl implements PassengerService{
         user.setEmail(request.getEmail());
         user.setStatus(request.getUserStatus());
 
-        passenger.setBalance(request.getBalance());
-
+        if (request.getBalance() != null) {
+            passenger.setBalance(request.getBalance());
+        }
         Passenger updatedPassenger = passengerRepository.save(passenger);
 
         return new PassengerDetailRS(updatedPassenger);
@@ -180,5 +198,33 @@ public class PassengerServiceImpl implements PassengerService{
         }
 
         return new BulkDeleteRS(foundIds, notFoundIds);
+    }
+
+    @Override
+    @Transactional
+    public BalanceTransactionDetailRS recharge(Long passengerId, RechargeRQ request) {
+        Passenger passenger = passengerRepository.findById(passengerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Pasajero no encontrado con ID: " + passengerId));
+
+        User user = passenger.getUser();
+        if (user.getRole() != RoleType.PASSENGER) {
+            throw new IllegalArgumentException("El usuario no tiene el rol de pasajero");
+        }
+
+        BigDecimal newBalance = passenger.getBalance().add(request.getAmount());
+        passenger.setBalance(newBalance);
+        passengerRepository.save(passenger);
+
+        BalanceTransaction transaction = BalanceTransaction.builder()
+                .user(user)
+                .amount(request.getAmount())
+                .type(TransactionType.RECHARGE)
+                .transactionDate(LocalDateTime.now())
+                .description(request.getDescription())
+                .build();
+
+        BalanceTransaction savedTransaction = balanceTransactionRepository.save(transaction);
+
+        return new BalanceTransactionDetailRS(savedTransaction);
     }
 }
