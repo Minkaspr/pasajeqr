@@ -30,10 +30,11 @@ public class StopController {
     @GetMapping
     public ResponseEntity<ApiResponse<StopsRS>> getAllPaged(
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size,
+            @RequestParam(required = false) String search
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-        StopsRS stops = stopService.listPaged(pageable);
+        StopsRS stops = stopService.listPaged(search, pageable);
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Lista de paraderos", stops, null));
     }
 

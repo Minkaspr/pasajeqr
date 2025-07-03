@@ -28,8 +28,13 @@ public class FareServiceImpl implements FareService {
     private StopRepository stopRepository;
 
     @Override
-    public FaresRS listPaged(Pageable pageable) {
-        Page<Fare> page = fareRepository.findAll(pageable);
+    public FaresRS listPaged(String search, Pageable pageable) {
+        Page<Fare> page;
+        if (search != null && !search.trim().isEmpty()) {
+            page = fareRepository.findByCodeContainingIgnoreCase(search.trim(), pageable);
+        } else {
+            page = fareRepository.findAll(pageable);
+        }
         List<FareItemRS> fares = page.getContent().stream()
                 .map(FareItemRS::new)
                 .toList();

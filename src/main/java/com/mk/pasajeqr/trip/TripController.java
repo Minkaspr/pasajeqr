@@ -29,10 +29,11 @@ public class TripController {
     @GetMapping
     public ResponseEntity<ApiResponse<TripRS>> getAllPaged(
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) int size
+            @RequestParam(defaultValue = "10") @Min(1) int size,
+            @RequestParam(required = false) String code
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("departureDate").descending().and(Sort.by("departureTime")));
-        TripRS result = serviceService.listPaged(pageable);
+        TripRS result = serviceService.listPaged(pageable, code);
 
         return ResponseEntity.ok(
                 new ApiResponse<>(HttpStatus.OK.value(), "Lista de servicios", result, null)

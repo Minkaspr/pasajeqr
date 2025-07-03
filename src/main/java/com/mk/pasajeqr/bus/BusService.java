@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface BusService {
-    BusesRS listPaged(Pageable pageable);
+    BusesRS listPaged(Pageable pageable, String search);
     BusDetailRS create(BusCreateRQ request);
     BusDetailRS getById(Long id);
     BusDetailRS update(Long id, BusUpdateRQ request);

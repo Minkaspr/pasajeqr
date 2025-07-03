@@ -11,6 +11,8 @@ public class FareDetailRS {
     private String code;
     private String originStopName;
     private String destinationStopName;
+    private Long originStopId;
+    private Long destinationStopId;
     private BigDecimal price;
 
     public FareDetailRS(Fare fare) {
@@ -18,6 +20,9 @@ public class FareDetailRS {
         this.code = fare.getCode();
         this.originStopName = fare.getOriginStop().getName();
         this.destinationStopName = fare.getDestinationStop().getName();
+        this.originStopId = fare.getOriginStop().getId();
+        this.destinationStopId = fare.getDestinationStop().getId();
         this.price = fare.getPrice();
     }
 }
+

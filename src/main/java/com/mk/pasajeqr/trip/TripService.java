@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface TripService {
-    TripRS listPaged(Pageable pageable);
+    TripRS listPaged(Pageable pageable, String codeFilter);
     TripDetailRS create(TripCreateRQ request);
     TripDetailRS getById(Long id);
     TripDetailRS update(Long id, TripUpdateRQ request);
