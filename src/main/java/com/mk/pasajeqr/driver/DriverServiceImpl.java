@@ -50,7 +50,7 @@ public class DriverServiceImpl implements DriverService{
                 .dni(request.getDni())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.DRIVER)
+                .role(RoleType.DRIVER)
                 .status(true)
                 .build();
 

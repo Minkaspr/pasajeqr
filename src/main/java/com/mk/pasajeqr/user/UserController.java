@@ -1,8 +1,10 @@
 package com.mk.pasajeqr.user;
 
 import com.mk.pasajeqr.common.response.ApiResponse;
+import com.mk.pasajeqr.passenger.response.PassengerLookupRS;
 import com.mk.pasajeqr.user.request.UserRegisterRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,5 +58,16 @@ public class UserController {
     public ResponseEntity<User> findByEmail(@RequestParam String email) {
         User user = userService.findByEmail(email);
         return ResponseEntity.ok(user);
+    }
+
+    @GetMapping("/dni/{dni}")
+    public ResponseEntity<ApiResponse<PassengerLookupRS>> getPassengerByDni(
+            @PathVariable @Pattern(regexp = "\\d{8}", message = "El DNI debe tener 8 dígitos") String dni
+    ) {
+        PassengerLookupRS result = userService.findPassengerByDni(dni);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(HttpStatus.OK.value(), "Usuario válido", result, null)
+        );
     }
 }

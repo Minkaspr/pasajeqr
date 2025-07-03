@@ -1,5 +1,6 @@
 package com.mk.pasajeqr.trip.request;
 
+import com.mk.pasajeqr.utils.ServiceStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -39,4 +40,7 @@ public class TripCreateRQ {
 
     private LocalDate arrivalDate;
     private LocalTime arrivalTime;
+
+    @NotNull(message = "El estado del servicio es obligatorio")
+    private ServiceStatus status;
 }

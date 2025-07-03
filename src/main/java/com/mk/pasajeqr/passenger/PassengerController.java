@@ -1,8 +1,10 @@
 package com.mk.pasajeqr.passenger;
 
+import com.mk.pasajeqr.balance_transaction.response.BalanceTransactionDetailRS;
 import com.mk.pasajeqr.common.response.ApiResponse;
 import com.mk.pasajeqr.passenger.request.PassengerCreateRQ;
 import com.mk.pasajeqr.passenger.request.PassengerUpdateRQ;
+import com.mk.pasajeqr.passenger.request.RechargeRQ;
 import com.mk.pasajeqr.passenger.response.PassengerDetailRS;
 import com.mk.pasajeqr.passenger.response.PassengersRS;
 import com.mk.pasajeqr.utils.*;
@@ -87,7 +89,7 @@ public class PassengerController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<ApiResponse<?>> changeStatus(
             @PathVariable @Min(value = 1, message = "El ID debe ser mayor o igual a 1") Long id,
-            @Valid @RequestBody ChangeStatusRQ request
+            @Valid @RequestBody UserStatusRQ request
     ) {
         UserStatusRS response = passengerService.setUserStatus(id, request.getActive());
 
@@ -114,6 +116,17 @@ public class PassengerController {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(HttpStatus.OK.value(), "Operación de eliminación masiva completada", result, null)
+        );
+    }
+
+    @PostMapping("/{id}/recharge")
+    public ResponseEntity<ApiResponse<BalanceTransactionDetailRS>> rechargeBalance(
+            @PathVariable Long id,
+            @Valid @RequestBody RechargeRQ request
+    ) {
+        BalanceTransactionDetailRS tx = passengerService.recharge(id, request);
+        return ResponseEntity.ok(
+                new ApiResponse<>(HttpStatus.OK.value(), "Recarga realizada correctamente", tx, null)
         );
     }
 }

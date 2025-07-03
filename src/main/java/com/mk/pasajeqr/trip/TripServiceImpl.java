@@ -30,7 +30,7 @@ import java.util.List;
 public class TripServiceImpl implements TripService {
 
     @Autowired
-    private TripRepository serviceRepository;
+    private TripRepository tripRepository;
     @Autowired
     private BusRepository busRepository;
     @Autowired
@@ -39,8 +39,14 @@ public class TripServiceImpl implements TripService {
     private StopRepository stopRepository;
 
     @Override
-    public TripRS listPaged(Pageable pageable) {
-        Page<Trip> page = serviceRepository.findAll(pageable);
+    public TripRS listPaged(Pageable pageable, String codeFilter) {
+        Page<Trip> page;
+
+        if (codeFilter != null && !codeFilter.trim().isEmpty()) {
+            page = tripRepository.findByCodeContainingIgnoreCase(codeFilter.trim(), pageable);
+        } else {
+            page = tripRepository.findAll(pageable);
+        }
         List<TripItemRS> content = page.getContent().stream()
                 .map(TripItemRS::new).toList();
         return new TripRS(content, page.getNumber(), page.getTotalPages(), page.getTotalElements());
@@ -49,7 +55,7 @@ public class TripServiceImpl implements TripService {
     @Override
     @Transactional
     public TripDetailRS create(TripCreateRQ request) {
-        if (serviceRepository.existsByCode(request.getCode())) {
+        if (tripRepository.existsByCode(request.getCode())) {
             throw new DuplicateResourceException("Ya existe un servicio con ese código");
         }
 
@@ -89,12 +95,12 @@ public class TripServiceImpl implements TripService {
                 .status(ServiceStatus.SCHEDULED)
                 .build();
 
-        return new TripDetailRS(serviceRepository.save(trip));
+        return new TripDetailRS(tripRepository.save(trip));
     }
 
     @Override
     public TripDetailRS getById(Long id) {
-        Trip service = serviceRepository.findById(id)
+        Trip service = tripRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
         return new TripDetailRS(service);
     }
@@ -102,10 +108,10 @@ public class TripServiceImpl implements TripService {
     @Override
     @Transactional
     public TripDetailRS update(Long id, TripUpdateRQ request) {
-        Trip service = serviceRepository.findById(id)
+        Trip service = tripRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
 
-        if (!service.getCode().equals(request.getCode()) && serviceRepository.existsByCode(request.getCode())) {
+        if (!service.getCode().equals(request.getCode()) && tripRepository.existsByCode(request.getCode())) {
             throw new DuplicateResourceException("Ya existe un servicio con ese código");
         }
 
@@ -143,24 +149,24 @@ public class TripServiceImpl implements TripService {
         service.setArrivalTime(arrivalTime);
         service.setStatus(request.getStatus());
 
-        return new TripDetailRS(serviceRepository.save(service));
+        return new TripDetailRS(tripRepository.save(service));
     }
 
     @Override
     @Transactional
     public void delete(Long id) {
-        Trip service = serviceRepository.findById(id)
+        Trip service = tripRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
-        serviceRepository.delete(service);
+        tripRepository.delete(service);
     }
 
     @Override
     @Transactional
     public BulkDeleteRS deleteBulk(List<Long> ids) {
-        List<Trip> found = serviceRepository.findAllById(ids);
+        List<Trip> found = tripRepository.findAllById(ids);
         List<Long> foundIds = found.stream().map(Trip::getId).toList();
         List<Long> notFoundIds = ids.stream().filter(id -> !foundIds.contains(id)).toList();
-        found.forEach(serviceRepository::delete);
+        found.forEach(tripRepository::delete);
         return new BulkDeleteRS(foundIds, notFoundIds);
     }
 }

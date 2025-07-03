@@ -23,8 +23,13 @@ public class BusServiceImpl implements BusService {
     private BusRepository busRepository;
 
     @Override
-    public BusesRS listPaged(Pageable pageable) {
-        Page<Bus> page = busRepository.findAll(pageable);
+    public BusesRS listPaged(Pageable pageable, String search) {
+        Page<Bus> page;
+        if (search != null && !search.trim().isEmpty()) {
+            page = busRepository.findByPlateContainingIgnoreCase(search.trim(), pageable);
+        } else {
+            page = busRepository.findAll(pageable);
+        }
         List<BusItemRS> busList = page.getContent().stream().map(BusItemRS::new).toList();
 
         return new BusesRS(busList, page.getNumber(), page.getTotalPages(), page.getTotalElements());

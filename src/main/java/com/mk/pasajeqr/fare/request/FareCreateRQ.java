@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 public class FareCreateRQ {
 
     @NotBlank(message = "El código de tarifa es obligatorio")
-    @Size(max = 20, message = "El código no puede tener más de 20 caracteres")
+    @Size(max = 32, message = "El código no puede tener más de 32 caracteres")
     private String code;
 
     @NotNull(message = "El ID del paradero de origen es obligatorio")

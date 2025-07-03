@@ -30,10 +30,11 @@ public class BusController {
     @GetMapping
     public ResponseEntity<ApiResponse<BusesRS>> listPaged(
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size,
+            @RequestParam(required = false) String search
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-        BusesRS result = busService.listPaged(pageable);
+        BusesRS result = busService.listPaged(pageable, search);
         return ResponseEntity.ok(new ApiResponse<>(200, "Lista de buses", result, null));
     }
 

@@ -108,7 +108,7 @@ public class DriverController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<ApiResponse<?>> changeDriverStatus(
             @PathVariable @Min(value = 1, message = "El ID debe ser mayor o igual a 1") Long id,
-            @Valid @RequestBody ChangeStatusRQ request
+            @Valid @RequestBody UserStatusRQ request
     ) {
         UserStatusRS response = driverService.setUserStatus(id, request.getActive());
         String message = request.getActive() ? "Cuenta activada con éxito" : "Cuenta desactivada con éxito";

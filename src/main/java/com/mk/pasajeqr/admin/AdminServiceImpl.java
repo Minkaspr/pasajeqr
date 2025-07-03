@@ -12,7 +12,7 @@ import com.mk.pasajeqr.user.UserRepository;
 import com.mk.pasajeqr.utils.ChangePasswordRQ;
 import com.mk.pasajeqr.utils.UserStatusRS;
 import com.mk.pasajeqr.utils.BulkDeleteRS;
-import com.mk.pasajeqr.utils.Role;
+import com.mk.pasajeqr.utils.RoleType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -71,7 +71,7 @@ public class AdminServiceImpl implements AdminService{
                 .dni(request.getDni())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.ADMIN)
+                .role(RoleType.ADMIN)
                 .status(true)
                 .build();
 

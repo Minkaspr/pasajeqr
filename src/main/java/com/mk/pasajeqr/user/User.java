@@ -1,6 +1,6 @@
 package com.mk.pasajeqr.user;
 
-import com.mk.pasajeqr.utils.Role;
+import com.mk.pasajeqr.utils.RoleType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -46,7 +46,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     @NotNull(message = "El rol es obligatorio")
     @Column(nullable = false)
-    private Role role;
+    private RoleType role;
 
     @Column(nullable = false)
     private Boolean status;

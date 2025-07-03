@@ -22,8 +22,14 @@ public class StopServiceImpl implements StopService {
     private StopRepository stopRepository;
 
     @Override
-    public StopsRS listPaged(Pageable pageable) {
-        Page<Stop> page = stopRepository.findAll(pageable);
+    public StopsRS listPaged(String search, Pageable pageable) {
+        Page<Stop> page;
+
+        if (search == null || search.isBlank()) {
+            page = stopRepository.findAll(pageable);
+        } else {
+            page = stopRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
+        }
 
         List<StopItemRS> stops = page.getContent().stream()
                 .map(StopItemRS::new)

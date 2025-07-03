@@ -1,6 +1,6 @@
 package com.mk.pasajeqr.user.dto;
 
-import com.mk.pasajeqr.utils.Role;
+import com.mk.pasajeqr.utils.RoleType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -20,5 +20,5 @@ public class RegisterDTO extends BaseUserDTO {
     private String password;
 
     @NotNull(message = "El rol es obligatorio")
-    private Role role;
+    private RoleType role;
 }
