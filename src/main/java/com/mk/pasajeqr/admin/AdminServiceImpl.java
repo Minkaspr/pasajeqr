@@ -1,6 +1,7 @@
 package com.mk.pasajeqr.admin;
 
 import com.mk.pasajeqr.admin.request.AdminCreateRQ;
+import com.mk.pasajeqr.admin.request.AdminProfileUpdateRQ;
 import com.mk.pasajeqr.admin.request.AdminUpdateRQ;
 import com.mk.pasajeqr.admin.response.AdminDetailRS;
 import com.mk.pasajeqr.admin.response.AdminUserItemRS;
@@ -97,6 +98,15 @@ public class AdminServiceImpl implements AdminService{
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public AdminDetailRS getProfile(Long userId) {
+        Admin admin = adminRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin no encontrado"));
+
+        return new AdminDetailRS(admin);
+    }
+
+    @Override
     @Transactional
     public AdminDetailRS update(Long id, AdminUpdateRQ request) {
         // Buscar al Admin por ID (relacionado con User)
@@ -132,6 +142,24 @@ public class AdminServiceImpl implements AdminService{
 
         // Retornar respuesta detallada
         return new AdminDetailRS(updatedAdmin);
+    }
+
+    @Override
+    @Transactional
+    public AdminDetailRS updateProfile(Long userId, AdminProfileUpdateRQ request) {
+        // Obtener Admin por el ID de usuario autenticado
+        Admin admin = adminRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin no encontrado"));
+
+        User user = admin.getUser();
+
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        admin.setBirthDate(request.getBirthDate());
+
+        Admin updated = adminRepository.save(admin);
+
+        return new AdminDetailRS(updated);
     }
 
     @Override

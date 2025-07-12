@@ -4,6 +4,7 @@ import com.mk.pasajeqr.auth.request.LoginRQ;
 import com.mk.pasajeqr.auth.request.RegisterRQ;
 import com.mk.pasajeqr.auth.response.AuthRS;
 import com.mk.pasajeqr.common.response.ApiResponse;
+import com.mk.pasajeqr.refresh_token.RefreshTokenRQ;
 import com.mk.pasajeqr.user.User;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +46,21 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
-        authService.logout(token);
+    public ResponseEntity<Void> logout(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        authService.logout(refreshToken);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<AuthRS>> refreshToken(@RequestBody RefreshTokenRQ request) {
+        AuthRS response = authService.refreshAccessToken(request.getRefreshToken());
+
+        return ResponseEntity.ok(new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Token renovado exitosamente",
+                response,
+                null
+        ));
     }
 }

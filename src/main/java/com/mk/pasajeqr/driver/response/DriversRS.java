@@ -9,8 +9,8 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DriversRS {
-    private List<DriverUserItemRS> drivers;
+public class DriversRS<T> {
+    private List<T> drivers;
     private int currentPage;
     private int totalPages;
     private long totalItems;

@@ -1,6 +1,8 @@
 package com.mk.pasajeqr.driver;
 
 import com.mk.pasajeqr.common.response.ApiResponse;
+import com.mk.pasajeqr.driver.response.AvailableDriverRS;
+import com.mk.pasajeqr.driver.response.DriverUserItemRS;
 import com.mk.pasajeqr.utils.*;
 import com.mk.pasajeqr.driver.request.DriverCreateRQ;
 import com.mk.pasajeqr.driver.request.DriverUpdateRQ;
@@ -25,6 +27,43 @@ public class DriverController {
 
     @Autowired
     private DriverService driverService;
+
+    // Listar drivers con paginación
+    @GetMapping
+    public ResponseEntity<ApiResponse<DriversRS<DriverUserItemRS>>> listDrivers(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("userId").descending());
+        DriversRS<DriverUserItemRS> result = driverService.listDrivers(pageable);
+
+        ApiResponse<DriversRS<DriverUserItemRS>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Lista de drivers",
+                result,
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<ApiResponse<DriversRS<AvailableDriverRS>>> listAvailableDrivers(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("userId").descending());
+        DriversRS<AvailableDriverRS> result = driverService.listAvailableDrivers(pageable);
+
+        ApiResponse<DriversRS<AvailableDriverRS>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Lista de conductores disponibles",
+                result,
+                null
+        );
+
+        return ResponseEntity.ok(response);
+    }
 
     // Crear un driver
     @PostMapping
@@ -52,25 +91,6 @@ public class DriverController {
                 HttpStatus.OK.value(),
                 "Driver encontrado",
                 dto,
-                null
-        );
-
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    // Listar drivers con paginación
-    @GetMapping
-    public ResponseEntity<ApiResponse<DriversRS>> listDrivers(
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
-    ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("userId").descending());
-        DriversRS result = driverService.listDrivers(pageable);
-
-        ApiResponse<DriversRS> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Lista de drivers",
-                result,
                 null
         );
 

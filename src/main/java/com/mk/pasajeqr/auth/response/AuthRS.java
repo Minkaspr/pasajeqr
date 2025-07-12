@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AuthRS {
     private String token;
+    private String refreshToken;
     private String tokenType;
-    private Integer expiresIn;
+    private long expiresIn;
     private UserRS user;
 }

@@ -6,6 +6,9 @@ import com.mk.pasajeqr.auth.response.UserRS;
 import com.mk.pasajeqr.common.exception.UnauthorizedException;
 import com.mk.pasajeqr.passenger.Passenger;
 import com.mk.pasajeqr.passenger.PassengerRepository;
+import com.mk.pasajeqr.jwt_config.JwtTokenProvider;
+import com.mk.pasajeqr.refresh_token.RefreshToken;
+import com.mk.pasajeqr.refresh_token.RefreshTokenService;
 import com.mk.pasajeqr.user.User;
 import com.mk.pasajeqr.user.UserRepository;
 import com.mk.pasajeqr.utils.RoleType;
@@ -27,6 +30,13 @@ public class AuthServiceImpl implements AuthService{
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+
 
     @Override
     @Transactional
@@ -61,10 +71,18 @@ public class AuthServiceImpl implements AuthService{
             throw new UnauthorizedException("Credenciales inválidas");
         }
 
+        // Crear access token (JWT)
+        String accessToken = jwtTokenProvider.generateAccessToken(user);
+
+        // Crear refresh token (en BD)
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+
+        // Respuesta
         return AuthRS.builder()
-                .token("abc")
+                .token(accessToken)
+                .refreshToken(refreshToken.getToken()) // valor UUID generado
                 .tokenType("Bearer")
-                .expiresIn(3600) // Duración del token en segundos
+                .expiresIn(jwtTokenProvider.getAccessExpirationMs() / 1000)
                 .user(UserRS.builder()
                         .id(user.getId())
                         .email(user.getEmail())
@@ -76,7 +94,41 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
-    public void logout(String token) {
+    public void logout(String refreshTokenStr) {
+        refreshTokenService.revoke(refreshTokenStr);
+    }
 
+    @Override
+    public AuthRS refreshAccessToken(String refreshTokenStr) {
+        RefreshToken refreshToken = refreshTokenService.findByToken(refreshTokenStr)
+                .orElseThrow(() -> new UnauthorizedException("Refresh token inválido"));
+
+        if (!refreshTokenService.isValid(refreshToken)) {
+            refreshTokenService.revoke(refreshTokenStr);
+            throw new UnauthorizedException("Refresh token caducado o revocado");
+        }
+
+        User user = refreshToken.getUser();
+
+        // Revocar el refresh token actual (rotación segura)
+        refreshTokenService.revoke(refreshTokenStr);
+
+        // Generar nuevos tokens
+        String newAccessToken = jwtTokenProvider.generateAccessToken(user);
+        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
+
+        return AuthRS.builder()
+                .token(newAccessToken)
+                .refreshToken(newRefreshToken.getToken())
+                .tokenType("Bearer")
+                .expiresIn(jwtTokenProvider.getAccessExpirationMs() / 1000)
+                .user(UserRS.builder()
+                        .id(user.getId())
+                        .email(user.getEmail())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .role(user.getRole().name())
+                        .build())
+                .build();
     }
 }

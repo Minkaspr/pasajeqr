@@ -2,11 +2,11 @@ package com.mk.pasajeqr.trip;
 
 import com.mk.pasajeqr.bus.Bus;
 import com.mk.pasajeqr.bus.BusRepository;
-import com.mk.pasajeqr.common.exception.DuplicateResourceException;
 import com.mk.pasajeqr.common.exception.ResourceNotFoundException;
 import com.mk.pasajeqr.trip.request.TripCreateRQ;
 import com.mk.pasajeqr.trip.request.TripUpdateRQ;
 import com.mk.pasajeqr.trip.response.TripDetailRS;
+import com.mk.pasajeqr.trip.response.TripEditRS;
 import com.mk.pasajeqr.trip.response.TripItemRS;
 import com.mk.pasajeqr.trip.response.TripRS;
 import com.mk.pasajeqr.stop.Stop;
@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class TripServiceImpl implements TripService {
@@ -37,6 +38,8 @@ public class TripServiceImpl implements TripService {
     private UserRepository userRepository;
     @Autowired
     private StopRepository stopRepository;
+    @Autowired
+    private TripQrJwtService tripQrJwtService;
 
     @Override
     public TripRS listPaged(Pageable pageable, String codeFilter) {
@@ -55,9 +58,7 @@ public class TripServiceImpl implements TripService {
     @Override
     @Transactional
     public TripDetailRS create(TripCreateRQ request) {
-        if (tripRepository.existsByCode(request.getCode())) {
-            throw new DuplicateResourceException("Ya existe un servicio con ese código");
-        }
+        String generatedCode = generateTripCode();
 
         Bus bus = busRepository.findById(request.getBusId())
                 .orElseThrow(() -> new ResourceNotFoundException("Bus no encontrado"));
@@ -83,7 +84,7 @@ public class TripServiceImpl implements TripService {
         }
 
         Trip trip = Trip.builder()
-                .code(request.getCode())
+                .code(generatedCode)
                 .bus(bus)
                 .driver(driver)
                 .originStop(origin)
@@ -92,17 +93,29 @@ public class TripServiceImpl implements TripService {
                 .departureTime(departureTime)
                 .arrivalDate(arrivalDate)
                 .arrivalTime(arrivalTime)
-                .status(ServiceStatus.SCHEDULED)
+                .status(request.getStatus())
                 .build();
 
         return new TripDetailRS(tripRepository.save(trip));
     }
 
     @Override
-    public TripDetailRS getById(Long id) {
-        Trip service = tripRepository.findById(id)
+    public TripEditRS getById(Long id) {
+        Trip trip = tripRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
-        return new TripDetailRS(service);
+        return new TripEditRS(
+                trip.getId(),
+                trip.getBus().getId(),
+                trip.getDriver().getId(),
+                trip.getOriginStop().getId(),
+                trip.getDestinationStop().getId(),
+                trip.getDepartureDate(),
+                trip.getDepartureTime(),
+                trip.getArrivalDate(),
+                trip.getArrivalTime(),
+                trip.getStatus(),
+                trip.getCode()
+        );
     }
 
     @Override
@@ -110,10 +123,6 @@ public class TripServiceImpl implements TripService {
     public TripDetailRS update(Long id, TripUpdateRQ request) {
         Trip service = tripRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
-
-        if (!service.getCode().equals(request.getCode()) && tripRepository.existsByCode(request.getCode())) {
-            throw new DuplicateResourceException("Ya existe un servicio con ese código");
-        }
 
         Bus bus = busRepository.findById(request.getBusId())
                 .orElseThrow(() -> new ResourceNotFoundException("Bus no encontrado"));
@@ -138,7 +147,6 @@ public class TripServiceImpl implements TripService {
             }
         }
 
-        service.setCode(request.getCode());
         service.setBus(bus);
         service.setDriver(driver);
         service.setOriginStop(origin);
@@ -168,5 +176,26 @@ public class TripServiceImpl implements TripService {
         List<Long> notFoundIds = ids.stream().filter(id -> !foundIds.contains(id)).toList();
         found.forEach(tripRepository::delete);
         return new BulkDeleteRS(foundIds, notFoundIds);
+    }
+
+    @Override
+    public String generateQrToken(Long tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
+
+        if (trip.getStatus() == ServiceStatus.CANCELED) {
+            throw new IllegalStateException("No se puede generar un QR para un servicio cancelado");
+        }
+
+        if(trip.getStatus() == ServiceStatus.COMPLETED) {
+            throw new IllegalStateException("No se puede generar un QR para un servicio completado");
+        }
+
+        return tripQrJwtService.generateToken(trip);
+    }
+
+    public String generateTripCode() {
+        String uuidPart = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        return "TRIP-" + uuidPart;
     }
 }
