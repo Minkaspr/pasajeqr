@@ -10,4 +10,6 @@ public interface AuthService {
     AuthRS login(String email, String password);
 
     void logout(String token);
+
+    AuthRS refreshAccessToken(String refreshTokenStr);
 }

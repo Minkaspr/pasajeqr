@@ -1,10 +1,12 @@
 package com.mk.pasajeqr.admin;
 
 import com.mk.pasajeqr.admin.request.AdminCreateRQ;
+import com.mk.pasajeqr.admin.request.AdminProfileUpdateRQ;
 import com.mk.pasajeqr.admin.request.AdminUpdateRQ;
 import com.mk.pasajeqr.admin.response.AdminDetailRS;
 import com.mk.pasajeqr.admin.response.AdminsRS;
 import com.mk.pasajeqr.common.response.ApiResponse;
+import com.mk.pasajeqr.jwt_config.UserDetailsImpl;
 import com.mk.pasajeqr.utils.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,6 +64,12 @@ public class AdminController {
         );
     }
 
+    @GetMapping("/perfil")
+    public ResponseEntity<ApiResponse<AdminDetailRS>> getProfile(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        AdminDetailRS profile = adminService.getProfile(userDetails.getId());
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Perfil obtenido", profile, null));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<AdminDetailRS>> update(
             @PathVariable @Min(value = 1, message = "El ID debe ser mayor o igual a 1") Long id,
@@ -70,6 +79,18 @@ public class AdminController {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(HttpStatus.OK.value(), "Administrador actualizado correctamente", updatedAdmin, null)
+        );
+    }
+
+    @PutMapping("/perfil")
+    public ResponseEntity<ApiResponse<AdminDetailRS>> updateProfile(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Valid @RequestBody AdminProfileUpdateRQ request
+    ) {
+        AdminDetailRS updated = adminService.updateProfile(userDetails.getId(), request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(HttpStatus.OK.value(), "Perfil actualizado correctamente", updated, null)
         );
     }
 

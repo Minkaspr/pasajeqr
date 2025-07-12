@@ -16,10 +16,6 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class TripCreateRQ {
 
-    @NotBlank(message = "El código del servicio es obligatorio")
-    @Size(max = 20, message = "El código no puede tener más de 20 caracteres")
-    private String code;
-
     @NotNull(message = "El ID del bus es obligatorio")
     private Long busId;
 

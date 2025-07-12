@@ -4,6 +4,7 @@ import com.mk.pasajeqr.common.exception.DuplicateResourceException;
 import com.mk.pasajeqr.common.exception.ResourceNotFoundException;
 import com.mk.pasajeqr.driver.request.DriverCreateRQ;
 import com.mk.pasajeqr.driver.request.DriverUpdateRQ;
+import com.mk.pasajeqr.driver.response.AvailableDriverRS;
 import com.mk.pasajeqr.driver.response.DriverDetailRS;
 import com.mk.pasajeqr.driver.response.DriverUserItemRS;
 import com.mk.pasajeqr.driver.response.DriversRS;
@@ -28,6 +29,37 @@ public class DriverServiceImpl implements DriverService{
     private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Override
+    public DriversRS<DriverUserItemRS> listDrivers(Pageable pageable) {
+        Page<Driver> driversPage = driverRepository.findAll(pageable);
+        List<DriverUserItemRS> driverDTOs = driversPage.getContent().stream()
+                .map(DriverUserItemRS::new)
+                .toList();
+
+        return new DriversRS<>(
+                driverDTOs,
+                driversPage.getNumber(),
+                driversPage.getTotalPages(),
+                driversPage.getTotalElements()
+        );
+    }
+
+    @Override
+    public DriversRS<AvailableDriverRS> listAvailableDrivers(Pageable pageable) {
+        Page<Driver> driversPage = driverRepository.findByStatusAndUser_Status(DriverStatus.AVAILABLE, true, pageable);
+
+        List<AvailableDriverRS> driverDTOs = driversPage.getContent().stream()
+                .map(AvailableDriverRS::new)
+                .toList();
+
+        return new DriversRS<>(
+                driverDTOs,
+                driversPage.getNumber(),
+                driversPage.getTotalPages(),
+                driversPage.getTotalElements()
+        );
+    }
 
     @Override
     @Transactional
@@ -72,21 +104,6 @@ public class DriverServiceImpl implements DriverService{
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Driver no encontrado con id: " + id));
         return new DriverDetailRS(driver);
-    }
-
-    @Override
-    public DriversRS listDrivers(Pageable pageable) {
-        Page<Driver> driversPage = driverRepository.findAll(pageable);
-        List<DriverUserItemRS> driverDTOs = driversPage.getContent().stream()
-                .map(DriverUserItemRS::new)
-                .toList();
-
-        return new DriversRS(
-                driverDTOs,
-                driversPage.getNumber(),
-                driversPage.getTotalPages(),
-                driversPage.getTotalElements()
-        );
     }
 
     @Override

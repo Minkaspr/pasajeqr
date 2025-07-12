@@ -4,6 +4,7 @@ import com.mk.pasajeqr.common.response.ApiResponse;
 import com.mk.pasajeqr.trip.request.TripCreateRQ;
 import com.mk.pasajeqr.trip.request.TripUpdateRQ;
 import com.mk.pasajeqr.trip.response.TripDetailRS;
+import com.mk.pasajeqr.trip.response.TripEditRS;
 import com.mk.pasajeqr.trip.response.TripRS;
 import com.mk.pasajeqr.utils.BulkDeleteRQ;
 import com.mk.pasajeqr.utils.BulkDeleteRS;
@@ -17,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/services")
@@ -52,10 +55,10 @@ public class TripController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<TripDetailRS>> getById(
+    public ResponseEntity<ApiResponse<TripEditRS>> getById(
             @PathVariable @Min(1) Long id
     ) {
-        TripDetailRS detail = serviceService.getById(id);
+        TripEditRS detail = serviceService.getById(id);
 
         return ResponseEntity.ok(
                 new ApiResponse<>(HttpStatus.OK.value(), "Servicio encontrado", detail, null)
@@ -90,6 +93,17 @@ public class TripController {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(HttpStatus.OK.value(), "Eliminación masiva completada", result, null)
+        );
+    }
+
+    @GetMapping("/{id}/qr-token")
+    public ResponseEntity<ApiResponse<Map<String, String>>> getQrToken(
+            @PathVariable @Min(1) Long id
+    ) {
+        String token = serviceService.generateQrToken(id);
+        Map<String, String> response = Map.of("token", token);
+        return ResponseEntity.ok(
+                new ApiResponse<>(HttpStatus.OK.value(), "Token generado exitosamente", response, null)
         );
     }
 }
