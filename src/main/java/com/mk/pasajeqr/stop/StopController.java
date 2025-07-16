@@ -38,6 +38,18 @@ public class StopController {
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Lista de paraderos", stops, null));
     }
 
+    @GetMapping("/terminals")
+    public ResponseEntity<ApiResponse<StopsRS>> getTerminalStops(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        StopsRS stops = stopService.listTerminalStops(pageable);
+        return ResponseEntity.ok(
+                new ApiResponse<>(HttpStatus.OK.value(), "Lista de paraderos terminales", stops, null)
+        );
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<StopDetailRS>> create(@Valid @RequestBody StopCreateRQ request) {
         StopDetailRS created = stopService.create(request);

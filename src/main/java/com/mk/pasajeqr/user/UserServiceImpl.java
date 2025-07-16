@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mk.pasajeqr.admin.Admin;
 import com.mk.pasajeqr.admin.AdminRepository;
+import com.mk.pasajeqr.bus.BusRepository;
 import com.mk.pasajeqr.common.exception.BadRequestException;
 import com.mk.pasajeqr.common.exception.ResourceNotFoundException;
 import com.mk.pasajeqr.common.exception.RoleDataConstraintViolationException;
@@ -13,6 +14,8 @@ import com.mk.pasajeqr.driver.DriverRepository;
 import com.mk.pasajeqr.passenger.Passenger;
 import com.mk.pasajeqr.passenger.PassengerRepository;
 import com.mk.pasajeqr.passenger.response.PassengerLookupRS;
+import com.mk.pasajeqr.stop.StopRepository;
+import com.mk.pasajeqr.user.dto.DashboardStatsRS;
 import com.mk.pasajeqr.user.dto.RegisterDTO;
 import com.mk.pasajeqr.user.request.UserRegisterRequest;
 import com.mk.pasajeqr.utils.RoleType;
@@ -22,6 +25,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
 
@@ -30,6 +37,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    BusRepository busRepository;
+
+    @Autowired
+    StopRepository stopRepository;
 
     @Autowired
     PassengerRepository passengerRepository;
@@ -139,6 +152,64 @@ public class UserServiceImpl implements UserService {
         );
     }
 
+    @Override
+    public DashboardStatsRS getUserStats() {
+        RoleType passenger = RoleType.PASSENGER;
+        RoleType driver = RoleType.DRIVER;
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
+
+        // Rangos
+        LocalDateTime startOfToday = today.atStartOfDay();
+        LocalDateTime endOfToday = today.atTime(23, 59, 59);
+
+        LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay();
+        LocalDateTime endOfYesterday = today.minusDays(1).atTime(23, 59, 59);
+
+        // Semana (desde lunes hasta ahora)
+        LocalDateTime startOfWeek = today.with(DayOfWeek.MONDAY).atStartOfDay();
+
+        // Pasajeros
+        long totalPassengers = userRepository.countByRole(passenger);
+        long todayPassengers = userRepository.countByRoleAndCreatedAtBetween(passenger, startOfToday, endOfToday);
+        long yesterdayPassengers = userRepository.countByRoleAndCreatedAtBetween(passenger, startOfYesterday, endOfYesterday);
+        long weeklyPassengers = userRepository.countByRoleAndCreatedAtBetween(passenger, startOfWeek, now);
+        double passengerGrowth = calculateGrowth(yesterdayPassengers, todayPassengers);
+
+        // Conductores
+        long totalDrivers = userRepository.countByRole(driver);
+        long todayDrivers = userRepository.countByRoleAndCreatedAtBetween(driver, startOfToday, endOfToday);
+        long yesterdayDrivers = userRepository.countByRoleAndCreatedAtBetween(driver, startOfYesterday, endOfYesterday);
+        long weeklyDrivers = userRepository.countByRoleAndCreatedAtBetween(driver, startOfWeek, now);
+        double driverGrowth = calculateGrowth(yesterdayDrivers, todayDrivers);
+
+        // VEHÍCULOS
+        long totalVehicles = busRepository.count();
+        long todayVehicles = busRepository.countByCreatedAtBetween(startOfToday, endOfToday);
+        long yesterdayVehicles = busRepository.countByCreatedAtBetween(startOfYesterday, endOfYesterday);
+        long weeklyVehicles = busRepository.countByCreatedAtBetween(startOfWeek, now);
+        double vehicleGrowth = calculateGrowth(yesterdayVehicles, todayVehicles);
+
+        // PARADEROS
+        LocalDate todayDate = LocalDate.now();
+        LocalDate yesterdayDate = todayDate.minusDays(1);
+        LocalDate mondayDate = todayDate.with(DayOfWeek.MONDAY);
+
+        long totalStops = stopRepository.count();
+        long todayStops = stopRepository.countByCreatedAtBetween(todayDate, todayDate);
+        long yesterdayStops = stopRepository.countByCreatedAtBetween(yesterdayDate, yesterdayDate);
+        long weeklyStops = stopRepository.countByCreatedAtBetween(mondayDate, todayDate);
+        double stopGrowth = calculateGrowth(yesterdayStops, todayStops);
+
+        return new DashboardStatsRS(
+                totalPassengers, passengerGrowth, todayPassengers, yesterdayPassengers, weeklyPassengers,
+                totalDrivers, driverGrowth, todayDrivers, yesterdayDrivers, weeklyDrivers,
+                totalVehicles, vehicleGrowth, todayVehicles, yesterdayVehicles, weeklyVehicles,
+                totalStops, stopGrowth, todayStops, yesterdayStops, weeklyStops
+        );
+    }
+
     private void validarRoleData(UserRegisterRequest request) {
         RoleType role = request.getUserData().getRole();
         JsonNode roleData = request.getRoleData();
@@ -187,5 +258,12 @@ public class UserServiceImpl implements UserService {
                 throw new RoleDataConstraintViolationException("Errores en datos del rol", (Set<ConstraintViolation<?>>)(Set<?>) violations);
             }
         }
+    }
+
+    private double calculateGrowth(long previous, long current) {
+        if (previous == 0) {
+            return current > 0 ? 100.0 : 0.0;
+        }
+        return ((double) (current - previous) / previous) * 100;
     }
 }

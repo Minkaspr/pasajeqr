@@ -11,6 +11,7 @@ import java.util.List;
 
 public interface StopService {
     StopsRS listPaged(String search, Pageable pageable);
+    StopsRS listTerminalStops(Pageable pageable);
     StopDetailRS create(StopCreateRQ request);
     StopDetailRS getById(Long id);
     StopDetailRS update(Long id, StopUpdateRQ request);

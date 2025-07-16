@@ -39,6 +39,21 @@ public class StopServiceImpl implements StopService {
     }
 
     @Override
+    public StopsRS listTerminalStops(Pageable pageable) {
+        Page<Stop> page = stopRepository.findByTerminalTrue(pageable);
+        List<StopItemRS> stops = page.getContent().stream()
+                .map(StopItemRS::new)
+                .toList();
+
+        return new StopsRS(
+                stops,
+                page.getNumber(),
+                page.getTotalPages(),
+                page.getTotalElements()
+        );
+    }
+
+    @Override
     public StopDetailRS create(StopCreateRQ request) {
         if (stopRepository.existsByName(request.getName())) {
             throw new DuplicateResourceException("Ya existe un paradero con ese nombre");
@@ -46,6 +61,7 @@ public class StopServiceImpl implements StopService {
 
         Stop stop = Stop.builder()
                 .name(request.getName())
+                .terminal(request.isTerminal())
                 .build();
 
         Stop saved = stopRepository.save(stop);
@@ -70,6 +86,7 @@ public class StopServiceImpl implements StopService {
         }
 
         stop.setName(request.getName());
+        stop.setTerminal(request.isTerminal());
 
         return new StopDetailRS(stopRepository.save(stop));
     }
