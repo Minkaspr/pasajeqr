@@ -2,6 +2,7 @@ package com.mk.pasajeqr.user;
 
 import com.mk.pasajeqr.common.response.ApiResponse;
 import com.mk.pasajeqr.passenger.response.PassengerLookupRS;
+import com.mk.pasajeqr.user.dto.DashboardStatsRS;
 import com.mk.pasajeqr.user.request.UserRegisterRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -69,5 +70,17 @@ public class UserController {
         return ResponseEntity.ok(
                 new ApiResponse<>(HttpStatus.OK.value(), "Usuario válido", result, null)
         );
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<ApiResponse<?>> getUserStats() {
+        DashboardStatsRS stats = userService.getUserStats();
+        ApiResponse<?> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Estadísticas de usuarios",
+                stats,
+                null
+        );
+        return ResponseEntity.ok(response);
     }
 }
