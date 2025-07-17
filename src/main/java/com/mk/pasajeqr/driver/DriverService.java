@@ -2,10 +2,7 @@ package com.mk.pasajeqr.driver;
 
 import com.mk.pasajeqr.driver.request.DriverCreateRQ;
 import com.mk.pasajeqr.driver.request.DriverUpdateRQ;
-import com.mk.pasajeqr.driver.response.AvailableDriverRS;
-import com.mk.pasajeqr.driver.response.DriverDetailRS;
-import com.mk.pasajeqr.driver.response.DriverUserItemRS;
-import com.mk.pasajeqr.driver.response.DriversRS;
+import com.mk.pasajeqr.driver.response.*;
 import com.mk.pasajeqr.utils.BulkDeleteRS;
 import com.mk.pasajeqr.utils.ChangePasswordRQ;
 import com.mk.pasajeqr.utils.UserStatusRS;
@@ -23,4 +20,5 @@ public interface DriverService {
     UserStatusRS setUserStatus(Long id, boolean active);
     void deleteDriver(Long id);
     BulkDeleteRS deleteDrivers(List<Long> ids);
+    List<DriverStatusCountRS> getDriverStatusSummary();
 }

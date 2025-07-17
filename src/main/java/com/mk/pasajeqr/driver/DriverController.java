@@ -1,13 +1,10 @@
 package com.mk.pasajeqr.driver;
 
 import com.mk.pasajeqr.common.response.ApiResponse;
-import com.mk.pasajeqr.driver.response.AvailableDriverRS;
-import com.mk.pasajeqr.driver.response.DriverUserItemRS;
+import com.mk.pasajeqr.driver.response.*;
 import com.mk.pasajeqr.utils.*;
 import com.mk.pasajeqr.driver.request.DriverCreateRQ;
 import com.mk.pasajeqr.driver.request.DriverUpdateRQ;
-import com.mk.pasajeqr.driver.response.DriverDetailRS;
-import com.mk.pasajeqr.driver.response.DriversRS;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -19,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Validated
 @RestController
@@ -154,5 +153,20 @@ public class DriverController {
         return ResponseEntity.ok(
                 new ApiResponse<>(HttpStatus.OK.value(), message, result, null)
         );
+    }
+
+    // Obtener resumen de conductores por estado
+    @GetMapping("/status-summary")
+    public ResponseEntity<ApiResponse<List<DriverStatusCountRS>>> getDriverStatusSummary() {
+        List<DriverStatusCountRS> summary = driverService.getDriverStatusSummary();
+
+        ApiResponse<List<DriverStatusCountRS>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Resumen de conductores por estado obtenido correctamente",
+                summary,
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
