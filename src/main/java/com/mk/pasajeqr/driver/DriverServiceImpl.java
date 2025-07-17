@@ -4,10 +4,7 @@ import com.mk.pasajeqr.common.exception.DuplicateResourceException;
 import com.mk.pasajeqr.common.exception.ResourceNotFoundException;
 import com.mk.pasajeqr.driver.request.DriverCreateRQ;
 import com.mk.pasajeqr.driver.request.DriverUpdateRQ;
-import com.mk.pasajeqr.driver.response.AvailableDriverRS;
-import com.mk.pasajeqr.driver.response.DriverDetailRS;
-import com.mk.pasajeqr.driver.response.DriverUserItemRS;
-import com.mk.pasajeqr.driver.response.DriversRS;
+import com.mk.pasajeqr.driver.response.*;
 import com.mk.pasajeqr.user.User;
 import com.mk.pasajeqr.user.UserRepository;
 import com.mk.pasajeqr.utils.*;
@@ -18,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -211,5 +209,17 @@ public class DriverServiceImpl implements DriverService{
         }
 
         return new BulkDeleteRS(foundIds, notFoundIds);
+    }
+
+    @Override
+    public List<DriverStatusCountRS> getDriverStatusSummary() {
+        List<DriverStatusCountRS> result = new ArrayList<>();
+
+        for (DriverStatus status : DriverStatus.values()) {
+            long count = driverRepository.countByStatus(status);
+            result.add(new DriverStatusCountRS(status, count));
+        }
+
+        return result;
     }
 }

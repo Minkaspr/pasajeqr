@@ -3,6 +3,7 @@ package com.mk.pasajeqr.balance_transaction;
 import com.mk.pasajeqr.balance_transaction.request.BalanceTransactionCreateRQ;
 import com.mk.pasajeqr.balance_transaction.response.BalanceTransactionDetailRS;
 import com.mk.pasajeqr.balance_transaction.response.BalanceTransactionsRS;
+import com.mk.pasajeqr.balance_transaction.response.DailyTransactionSummaryRS;
 import com.mk.pasajeqr.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -49,5 +50,18 @@ public class BalanceTransactionController {
         BalanceTransactionDetailRS result = transactionService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Transacción registrada exitosamente", result, null));
+    }
+
+    @GetMapping("/summary/last-7-days")
+    public ResponseEntity<ApiResponse<DailyTransactionSummaryRS>> getLast7DaysSummary() {
+        DailyTransactionSummaryRS summary = transactionService.getLast7DaysSummary();
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Resumen de los últimos 7 días obtenido correctamente",
+                        summary,
+                        null
+                )
+        );
     }
 }
