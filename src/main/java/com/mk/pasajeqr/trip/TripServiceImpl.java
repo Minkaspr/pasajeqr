@@ -42,6 +42,8 @@ public class TripServiceImpl implements TripService {
     private StopRepository stopRepository;
     @Autowired
     private TripQrJwtService tripQrJwtService;
+    @Autowired
+    private TripQrSimpleTokenService tripQrSimpleTokenService;
 
     @Override
     public TripRS listPaged(Pageable pageable, String codeFilter) {
@@ -193,14 +195,16 @@ public class TripServiceImpl implements TripService {
             throw new IllegalStateException("No se puede generar un QR para un servicio completado");
         }
 
-        return tripQrJwtService.generateToken(trip);
+        //return tripQrJwtService.generateToken(trip);
+        return tripQrSimpleTokenService.encryptTripId(tripId);
     }
 
     @Override
     public Map<String, Object> validateQrToken(String token) {
         Long tripId;
         try {
-            tripId = tripQrJwtService.validateTokenAndGetTripId(token);
+            // tripId = tripQrJwtService.validateTokenAndGetTripId(token);
+            tripId = tripQrSimpleTokenService.decryptToken(token);
         } catch (IllegalArgumentException e) {
             throw new IllegalStateException("El código QR no es válido o ha expirado");
         }

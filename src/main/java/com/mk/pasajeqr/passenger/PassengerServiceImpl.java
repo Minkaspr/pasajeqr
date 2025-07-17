@@ -5,6 +5,7 @@ import com.mk.pasajeqr.balance_transaction.BalanceTransactionRepository;
 import com.mk.pasajeqr.balance_transaction.response.BalanceTransactionDetailRS;
 import com.mk.pasajeqr.common.exception.DuplicateResourceException;
 import com.mk.pasajeqr.common.exception.ResourceNotFoundException;
+import com.mk.pasajeqr.passenger.request.FarePaymentRQ;
 import com.mk.pasajeqr.passenger.request.PassengerCreateRQ;
 import com.mk.pasajeqr.passenger.request.PassengerUpdateRQ;
 import com.mk.pasajeqr.passenger.request.RechargeRQ;
@@ -218,6 +219,39 @@ public class PassengerServiceImpl implements PassengerService{
                 .user(user)
                 .amount(request.getAmount())
                 .type(TransactionType.RECHARGE)
+                .transactionDate(LocalDateTime.now())
+                .description(request.getDescription())
+                .build();
+
+        BalanceTransaction savedTransaction = balanceTransactionRepository.save(transaction);
+
+        return new BalanceTransactionDetailRS(savedTransaction);
+    }
+
+    @Override
+    @Transactional
+    public BalanceTransactionDetailRS payFare(Long passengerId, FarePaymentRQ request) {
+        Passenger passenger = passengerRepository.findById(passengerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Pasajero no encontrado con ID: " + passengerId));
+
+        User user = passenger.getUser();
+        if (user.getRole() != RoleType.PASSENGER) {
+            throw new IllegalArgumentException("El usuario no tiene el rol de pasajero");
+        }
+
+        BigDecimal fareAmount = request.getAmount();
+
+        if (passenger.getBalance().compareTo(fareAmount) < 0) {
+            throw new IllegalStateException("Saldo insuficiente para realizar el pago");
+        }
+
+        passenger.setBalance(passenger.getBalance().subtract(fareAmount));
+        passengerRepository.save(passenger);
+
+        BalanceTransaction transaction = BalanceTransaction.builder()
+                .user(user)
+                .amount(fareAmount)
+                .type(TransactionType.PAYMENT)
                 .transactionDate(LocalDateTime.now())
                 .description(request.getDescription())
                 .build();
