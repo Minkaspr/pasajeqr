@@ -24,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -192,6 +194,35 @@ public class TripServiceImpl implements TripService {
         }
 
         return tripQrJwtService.generateToken(trip);
+    }
+
+    @Override
+    public Map<String, Object> validateQrToken(String token) {
+        Long tripId;
+        try {
+            tripId = tripQrJwtService.validateTokenAndGetTripId(token);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("El código QR no es válido o ha expirado");
+        }
+
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new ResourceNotFoundException("El viaje asociado al QR no existe"));
+
+        if (trip.getStatus() == ServiceStatus.CANCELED) {
+            throw new IllegalStateException("Este servicio ha sido cancelado");
+        }
+
+        if (trip.getStatus() == ServiceStatus.COMPLETED) {
+            throw new IllegalStateException("Este servicio ya fue completado");
+        }
+
+        // Si todo va bien, devolver un map con la información
+        Map<String, Object> response = new HashMap<>();
+        response.put("tripId", trip.getId());
+        response.put("tripCode", trip.getCode());
+        response.put("status", trip.getStatus());
+
+        return response;
     }
 
     public String generateTripCode() {

@@ -9,6 +9,7 @@ import com.mk.pasajeqr.utils.BulkDeleteRS;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 public interface TripService {
     TripRS listPaged(Pageable pageable, String codeFilter);
@@ -18,4 +19,5 @@ public interface TripService {
     void delete(Long id);
     BulkDeleteRS deleteBulk(List<Long> ids);
     String generateQrToken(Long tripId);
+    Map<String, Object> validateQrToken(String token);
 }
