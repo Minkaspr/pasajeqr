@@ -2,6 +2,7 @@ package com.mk.pasajeqr.passenger;
 
 import com.mk.pasajeqr.balance_transaction.response.BalanceTransactionDetailRS;
 import com.mk.pasajeqr.common.response.ApiResponse;
+import com.mk.pasajeqr.passenger.request.FarePaymentRQ;
 import com.mk.pasajeqr.passenger.request.PassengerCreateRQ;
 import com.mk.pasajeqr.passenger.request.PassengerUpdateRQ;
 import com.mk.pasajeqr.passenger.request.RechargeRQ;
@@ -128,6 +129,17 @@ public class PassengerController {
         BalanceTransactionDetailRS tx = passengerService.recharge(id, request);
         return ResponseEntity.ok(
                 new ApiResponse<>(HttpStatus.OK.value(), "Recarga realizada correctamente", tx, null)
+        );
+    }
+
+    @PostMapping("/{id}/pay")
+    public ResponseEntity<ApiResponse<BalanceTransactionDetailRS>> payFare(
+            @PathVariable Long id,
+            @Valid @RequestBody FarePaymentRQ request
+    ) {
+        BalanceTransactionDetailRS tx = passengerService.payFare(id, request);
+        return ResponseEntity.ok(
+                new ApiResponse<>(HttpStatus.OK.value(), "Pago realizado correctamente", tx, null)
         );
     }
 
