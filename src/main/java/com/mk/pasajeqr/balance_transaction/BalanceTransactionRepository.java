@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface BalanceTransactionRepository extends JpaRepository<BalanceTransaction, Long> {
     List<BalanceTransaction> findByTransactionDateBetween(LocalDateTime start, LocalDateTime end);
+    List<BalanceTransaction> findByUserIdOrderByTransactionDateDesc(Long userId);
 }

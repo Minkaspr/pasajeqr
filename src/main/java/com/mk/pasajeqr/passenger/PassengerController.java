@@ -5,6 +5,7 @@ import com.mk.pasajeqr.common.response.ApiResponse;
 import com.mk.pasajeqr.passenger.request.PassengerCreateRQ;
 import com.mk.pasajeqr.passenger.request.PassengerUpdateRQ;
 import com.mk.pasajeqr.passenger.request.RechargeRQ;
+import com.mk.pasajeqr.passenger.response.PassengerBalanceHistoryRS;
 import com.mk.pasajeqr.passenger.response.PassengerDetailRS;
 import com.mk.pasajeqr.passenger.response.PassengersRS;
 import com.mk.pasajeqr.utils.*;
@@ -127,6 +128,22 @@ public class PassengerController {
         BalanceTransactionDetailRS tx = passengerService.recharge(id, request);
         return ResponseEntity.ok(
                 new ApiResponse<>(HttpStatus.OK.value(), "Recarga realizada correctamente", tx, null)
+        );
+    }
+
+    @GetMapping("/{id}/balance-history")
+    public ResponseEntity<ApiResponse<PassengerBalanceHistoryRS>> getBalanceWithHistory(
+            @PathVariable @Min(value = 1, message = "El ID debe ser mayor o igual a 1") Long id
+    ) {
+        PassengerBalanceHistoryRS result = passengerService.getBalanceWithHistory(id);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Saldo e historial de transacciones recuperados correctamente",
+                        result,
+                        null
+                )
         );
     }
 }

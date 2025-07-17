@@ -106,4 +106,20 @@ public class TripController {
                 new ApiResponse<>(HttpStatus.OK.value(), "Token generado exitosamente", response, null)
         );
     }
+
+    @GetMapping("/validate-qr")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> validateQrToken(
+            @RequestParam String token
+    ) {
+        Map<String, Object> result = serviceService.validateQrToken(token);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "QR validado correctamente",
+                        result,
+                        null
+                )
+        );
+    }
 }

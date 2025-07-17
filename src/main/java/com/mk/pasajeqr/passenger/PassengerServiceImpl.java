@@ -8,9 +8,7 @@ import com.mk.pasajeqr.common.exception.ResourceNotFoundException;
 import com.mk.pasajeqr.passenger.request.PassengerCreateRQ;
 import com.mk.pasajeqr.passenger.request.PassengerUpdateRQ;
 import com.mk.pasajeqr.passenger.request.RechargeRQ;
-import com.mk.pasajeqr.passenger.response.PassengerDetailRS;
-import com.mk.pasajeqr.passenger.response.PassengerUserItemRS;
-import com.mk.pasajeqr.passenger.response.PassengersRS;
+import com.mk.pasajeqr.passenger.response.*;
 import com.mk.pasajeqr.user.User;
 import com.mk.pasajeqr.user.UserRepository;
 import com.mk.pasajeqr.utils.*;
@@ -24,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PassengerServiceImpl implements PassengerService{
@@ -226,5 +225,30 @@ public class PassengerServiceImpl implements PassengerService{
         BalanceTransaction savedTransaction = balanceTransactionRepository.save(transaction);
 
         return new BalanceTransactionDetailRS(savedTransaction);
+    }
+
+    @Override
+    public PassengerBalanceHistoryRS getBalanceWithHistory(Long passengerId) {
+        Passenger passenger = passengerRepository.findById(passengerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Pasajero no encontrado con ID: " + passengerId));
+
+        Long userId = passenger.getUser().getId(); // ID del usuario vinculado
+
+        List<BalanceTransaction> transactions = balanceTransactionRepository
+                .findByUserIdOrderByTransactionDateDesc(userId);
+
+        List<TransactionDetailRS> transactionDTOs = transactions.stream()
+                .map(tx -> TransactionDetailRS.builder()
+                        .type(tx.getType())
+                        .amount(tx.getAmount())
+                        .transactionDate(tx.getTransactionDate())
+                        .description(tx.getDescription())
+                        .build())
+                .collect(Collectors.toList());
+
+        return PassengerBalanceHistoryRS.builder()
+                .currentBalance(passenger.getBalance())
+                .transactions(transactionDTOs)
+                .build();
     }
 }
